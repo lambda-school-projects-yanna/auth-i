@@ -79,6 +79,15 @@ server.get('/api/users', restricted, (req, res) => {
     .catch(err => res.send(err));
 });
 
+/*
+
+server.get('/api/restricted/users', restricted, (req, res) => {
+    Users.find()
+    .then(users => {res.json(users)})
+    .catch(err => res.send(err));
+});
+
+*/
 
 const port = process.env.PORT || 5000;
 server.listen(port, () => console.log(`\n**** Running on port ${port} ****\n`));

@@ -7,7 +7,8 @@ module.exports = {
   findById,
 };
 
-// cannot use fat arrow functions here.
+/* cannot use fat arrow functions here. Try moving module.exports at the bottom
+because fat arrow functions don't hoist first. */
 
 function find() {
   return db('users').select('id', 'username', 'password');
