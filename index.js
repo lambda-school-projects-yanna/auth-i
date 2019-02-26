@@ -3,11 +3,35 @@ const helmet = require('helmet');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const Users = require('./users/users-module.js');
+const session = require('express-session');
+const KnexSessionStore = require('connect-session-knex')(session);
+const db = require('./database/dbConfig.js');
 
 const server = express();
+
+const sessionConfig = {
+  name: 'randosquirrel',
+  secret: 'shush shush',
+  cookie: {
+    maxAge: 1000 * 60 * 60, // in ms = an hour
+    secure: false,
+  },
+  httpOnly: true,
+  resave: false,
+  saveUninitialized: false,
+  store: new KnexSessionStore ({
+    knex: db,
+    tablename: 'sessions',
+    sidfieldname: 'sid',
+    createTable: true,
+    clearInterval: 1000 * 60 * 60
+  }),
+};
+
 server.use(helmet());
 server.use(express.json());
 server.use(cors());
+server.use(session(sessionConfig));
 
 // =========== Endpoints ========== \\
 
@@ -36,8 +60,9 @@ server.post('/api/login', (req, res) => {
     Users.findBy({username})
     .first()
     .then(user => {
+      req.session.user = user;
       if (user && bcrypt.compareSync(password, user.password)) {
-        res.status(200).json({ message: `Welcome ${user.username}!` });
+        res.status(200).json({ message: `Welcome ${user.username}! We've got a cookie for you.` });
       } else {
         res.status(401).json({ message: 'You shall NOT pass!' });
       }
@@ -49,6 +74,7 @@ server.post('/api/login', (req, res) => {
 
 // Restricted Middleware \\
 
+/*
 
 function restricted(req, res, next) {
     const { username, password } = req.headers;
@@ -70,10 +96,19 @@ function restricted(req, res, next) {
       res.status(400).json({ message: 'No credentials provided' });
     }
 }
+*/
+
+restricted = (req, res, next) => {
+  if (req.session && req.session.user) {
+    next();
+  } else {
+    res.status(401).json({message: 'Heathen, you shall NOT pass!'})
+  }
+};
 
 // ==== axios.get(url, { headers: { username, password } }); === \\
 
-server.get('/api/users', restricted, (req, res) => {
+server.get('/api/restricted/users', restricted, (req, res) => {
     Users.find()
     .then(users => {res.json(users)})
     .catch(err => res.send(err));
