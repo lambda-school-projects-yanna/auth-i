@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/yannafaith/auth-i#readme",
   "dependencies": {
-    "bcrypt": "^3.0.4",
+    "bcrypt": "^5.0.0",
     "connect-session-knex": "^1.4.0",
     "cors": "^2.8.5",
     "express": "^4.16.4",
